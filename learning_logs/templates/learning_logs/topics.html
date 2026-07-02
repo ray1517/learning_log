@@ -1,0 +1,33 @@
+{% extends 'learning_logs/base.html' %}
+
+{% block page_header %}
+  <h1>Topics</h1>
+{% endblock page_header %}
+
+{% block content %}
+{% if user.is_authenticated %}
+  <h3>My topics</h3>
+  <ul>
+    {% for topic in topics %}
+      <li>
+        <a href="{% url 'learning_logs:topic' topic.id %}">{{ topic.text }}</a>
+        {% if topic.public %} (Public){% endif %}
+      </li>
+    {% empty %}
+      <li>No topics have been added yet.</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+<h3>Public topics</h3>
+<ul>
+  {% for topic in public_topics %}
+    <li><a href="{% url 'learning_logs:topic' topic.id %}">{{ topic.text }}</a></li>
+  {% empty %}
+    <li>No public topics available.</li>
+  {% endfor %}
+</ul>
+{% if user.is_authenticated %}
+  <p><a href="{% url 'learning_logs:new_topic' %}">Add a new topic</a></p>
+{% endif %}
+{% endblock content %}

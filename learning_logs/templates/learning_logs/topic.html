@@ -6,7 +6,11 @@
 
 {% block content %}
 {% if is_owner %}
-  <p><a href="{% url 'learning_logs:new_entry' topic.id %}">Add new entry</a></p>
+  <p>
+    <a href="{% url 'learning_logs:new_entry' topic.id %}" class="btn btn-primary">
+      {% if LANGUAGE_CODE == "zh-hans" %}新增笔记{% else %}Add new entry{% endif %}
+    </a>
+  </p>
 {% endif %}
 
 {% for entry in entries %}
@@ -14,12 +18,21 @@
     <h4 class="card-header">
       {{ entry.date_added|date:'M d, Y H:i' }}
       {% if is_owner %}
-        <small><a href="{% url 'learning_logs:edit_entry' entry.id %}">edit entry</a></small>
+        <small>
+          <a href="{% url 'learning_logs:edit_entry' entry.id %}" class="btn btn-sm btn-outline-secondary py-0 px-1">
+            {% if LANGUAGE_CODE == "zh-hans" %}编辑{% else %}edit entry{% endif %}
+          </a>
+          <a href="{% url 'learning_logs:delete_entry' entry.id %}" class="btn btn-sm btn-outline-danger ms-1 py-0 px-1">
+            {% if LANGUAGE_CODE == "zh-hans" %}删除{% else %}delete entry{% endif %}
+          </a>
+        </small>
       {% endif %}
     </h4>
     <div class="card-body">{{ entry.text|linebreaks }}</div>
   </div>
 {% empty %}
-  <p>There are no entries for this topic yet.</p>
+  <p>
+    {% if LANGUAGE_CODE == "zh-hans" %}该主题下暂无笔记。{% else %}There are no entries for this topic yet.{% endif %}
+  </p>
 {% endfor %}
 {% endblock content %}

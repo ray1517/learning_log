@@ -15,10 +15,16 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path,include
+from django.urls import path, include
+from django.conf.urls.i18n import i18n_patterns
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/', include('accounts.urls')),
-    path('',include('learning_logs.urls')),
+    # 语言切换接口必须保留
+    path('i18n/', include('django.conf.urls.i18n')),
 ]
+# 所有页面路由包裹在 i18n_patterns 内，才会自动带上 /zh-hans/ /en/ 前缀
+urlpatterns += i18n_patterns(
+    path('', include('learning_logs.urls')),
+    path('accounts/', include('accounts.urls')),
+)

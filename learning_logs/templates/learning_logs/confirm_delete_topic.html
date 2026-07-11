@@ -1,0 +1,38 @@
+{% extends "learning_logs/base.html" %}
+{% load django_bootstrap5 %}
+
+{% block page_header %}
+  <h2 class="text-danger">
+    {% if LANGUAGE_CODE == "zh-hans" %}删除主题{% else %}Delete Topic{% endif %}
+  </h2>
+{% endblock page_header %}
+
+{% block content %}
+<div class="card shadow p-4">
+  <p class="fs-5">
+    {% if LANGUAGE_CODE == "zh-hans" %}
+    你确定要删除该主题：<strong>{{ topic.text }}</strong>？
+    {% else %}
+    Are you sure you want to delete the topic: <strong>{{ topic.text }}</strong>?
+    {% endif %}
+  </p>
+  <p class="text-secondary">
+    {% if LANGUAGE_CODE == "zh-hans" %}
+    该主题下所有笔记将被永久移除。
+    {% else %}
+    All entries under this topic will be permanently removed.
+    {% endif %}
+  </p>
+
+  <form action="{% url 'learning_logs:delete_topic' topic.id %}" method="post" class="mt-4">
+    {% csrf_token %}
+    {% if LANGUAGE_CODE == "zh-hans" %}
+      {% bootstrap_button button_type="submit" content="确认删除" button_class="btn-danger me-3" %}
+      <a href="{% url 'learning_logs:topic' topic.id %}" class="btn btn-secondary">取消</a>
+    {% else %}
+      {% bootstrap_button button_type="submit" content="Confirm Delete" button_class="btn-danger me-3" %}
+      <a href="{% url 'learning_logs:topic' topic.id %}" class="btn btn-secondary">Cancel</a>
+    {% endif %}
+  </form>
+</div>
+{% endblock content %}

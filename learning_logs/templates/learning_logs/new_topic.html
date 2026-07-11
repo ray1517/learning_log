@@ -2,16 +2,38 @@
 {% load django_bootstrap5 %}
 
 {% block page_header %}
-  <h2>Add a new topic.</h2>
+  <h2>
+    {% if LANGUAGE_CODE == "zh-hans" %}新建主题{% else %}Add a new topic.{% endif %}
+  </h2>
 {% endblock page_header %}
 
 {% block content %}
-
-  <p>Topic:</p>
+<div class="card shadow p-4" data-bs-theme>
   <form action="{% url 'learning_logs:new_topic' %}" method='post'>
     {% csrf_token %}
-    {% bootstrap_form form %}
-    {% bootstrap_button button_type="submit" content="Add topic" %}
-  </form>
 
+    <!-- 主题输入框 -->
+    <div class="mb-3">
+      <label class="form-label">
+        {% if LANGUAGE_CODE == "zh-hans" %}主题名称：{% else %}Topic:{% endif %}
+      </label>
+      {{ form.text }}
+    </div>
+
+    <!-- Public复选框，手动写双语标签 -->
+    <div class="form-check mb-3">
+      {{ form.public }}
+      <label class="form-check-label">
+        {% if LANGUAGE_CODE == "zh-hans" %}公开{% else %}Public{% endif %}
+      </label>
+    </div>
+
+    <!-- 提交按钮双语 -->
+    {% if LANGUAGE_CODE == "zh-hans" %}
+      {% bootstrap_button button_type="submit" content="添加主题" %}
+    {% else %}
+      {% bootstrap_button button_type="submit" content="Add topic" %}
+    {% endif %}
+  </form>
+</div>
 {% endblock content %}

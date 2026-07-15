@@ -1,5 +1,11 @@
-{% extends 'learning_logs/base.html' %}
+{% extends "base.html" %}
 {% load django_bootstrap5 %}
+
+{% block back_button %}
+  <a href="{% url 'learning_logs:index' %}" class="btn btn-outline-secondary btn-sm">
+    {% if LANGUAGE_CODE == "zh-hans" %}返回首页{% else %}Back Home{% endif %}
+  </a>
+{% endblock back_button %}
 
 {% block page_header %}
   <h2>
@@ -8,13 +14,30 @@
 {% endblock page_header %}
 
 {% block content %}
+<div class="card">
   <form action="{% url 'accounts:login' %}" method='post'>
     {% csrf_token %}
     {% bootstrap_form form %}
-    {% if LANGUAGE_CODE == "zh-hans" %}
-      {% bootstrap_button button_type="submit" content="登录" %}
-    {% else %}
-      {% bootstrap_button button_type="submit" content="Log in" %}
-    {% endif %}
+    <!-- 记住我复选框 -->
+    <div class="form-check mb-3">
+      <input type="checkbox" class="form-check-input" name="remember" id="remember">
+      <label class="form-check-label" for="remember">
+        {% if LANGUAGE_CODE == "zh-hans" %}7天内记住我{% else %}Remember me for 7 days{% endif %}
+      </label>
+    </div>
+    <div class="mt-4">
+      {% if LANGUAGE_CODE == "zh-hans" %}
+        {% bootstrap_button button_type="submit" content="登录" %}
+      {% else %}
+        {% bootstrap_button button_type="submit" content="Log in" %}
+      {% endif %}
+    </div>
   </form>
+</div>
 {% endblock content %}
+
+{% if request.session.toast_msg %}
+<script>
+  showToast("{{ request.session.toast_msg }}", "danger");
+</script>
+{% endif %}

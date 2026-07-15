@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+  <!-- 【根除页面切换白闪 前置阻塞脚本】放在head最顶部 -->
+  <script>
+    (function(){
+      try {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        const html = document.documentElement;
+        html.setAttribute('data-bs-theme', savedTheme);
+        html.style.colorScheme = savedTheme;
+      } catch(e) {}
+    })();
+  </script>
+
+  {% load static %}
+  <!-- 明暗模式自动切换Favicon -->
+  <link rel="icon" id="faviconTag" type="image/x-icon" href="{% static 'images/favicon-light.ico' %}">
+  <link rel="shortcut icon" id="faviconShortTag" type="image/x-icon" href="{% static 'images/favicon-light.ico' %}">
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>
+    {% if LANGUAGE_CODE == "zh-hans" %}学习日志{% else %}Learning Log{% endif %}
+  </title>
+
+  {% load django_bootstrap5 %}
+  {% bootstrap_css %}
+  {% bootstrap_javascript %}
+  <style>
+    /* 精准控制过渡，不再全局*通配符，消除标题文字抖动 */
+    body, .card, .btn, .form-control, .form-select, .dropdown-menu, .border-bottom {
+      transition: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+    }
+    h1,h2,h3 {
+      transition: none !important;
+    }
+
+    body {
+      line-height: 1.8;
+      color: #22262a;
+      background-color: #ffffff;
+    }
+
+    /* 统一卡片样式 亮色模式 */
+    .card {
+      border-radius: 14px !important;
+      box-shadow: 0 2px 14px rgba(0, 0, 0.07) !important;
+      border: none !important;
+      padding: 2rem;
+      background-color: #fcfcfc;
+    }
+
+    /* 标题层级规范 */
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 500;
+      margin-bottom: 0.75rem;
+    }
+    p {
+      margin-bottom: 1rem;
+    }
+
+    /* 下拉菜单选项加大内边距 */
+    .dropdown-item {
+      padding: 0.6rem 1.2rem !important;
+    }
+
+    /* Toast 弹窗固定右下角 */
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
+
+    /* 移动端折叠菜单垂直留白 */
+    @media (max-width: 767.98px) {
+      .navbar-collapse .navbar-nav {
+        gap: 1.2rem !important;
+        padding: 1rem 0;
+      }
+      .navbar-collapse .navbar-nav li {
+        width: 100%;
+      }
+      .navbar-collapse .navbar-nav .btn {
+        width: 100%;
+      }
+    }
+
+    /* ========== 暗色模式深度自定义配色 ========== */
+    [data-bs-theme="dark"] {
+      color-scheme: dark;
+    }
+    [data-bs-theme="dark"] body {
+      color: #e6edf7;
+      background-color: #12161d;
+    }
+    /* 自定义暗色卡片 */
+    [data-bs-theme="dark"] .card {
+      background-color: #1a202c;
+      box-shadow: 0 2px 16px rgba(0, 0, 0.4) !important;
+    }
+    /* 次要文字 */
+    [data-bs-theme="dark"] .text-secondary {
+      color: #a0aec0 !important;
+    }
+    [data-bs-theme="dark"] .text-muted {
+      color: #718096 !important;
+    }
+    /* 分割线、边框 */
+    [data-bs-theme="dark"] .border-bottom,
+    [data-bs-theme="dark"] .border {
+      border-color: #2d3748 !important;
+    }
+    /* 导航栏暗色定制 */
+    [data-bs-theme="dark"] .navbar {
+      background-color: #1a202c !important;
+    }
+    /* 下拉菜单暗色 */
+    [data-bs-theme="dark"] .dropdown-menu {
+      background-color: #1a202c;
+      border-color: #2d3748;
+    }
+    [data-bs-theme="dark"] .dropdown-item:hover {
+      background-color: #2d3748;
+      color: #e6edf7;
+    }
+    /* 表单输入框暗色专属配色 */
+    [data-bs-theme="dark"] .form-control,
+    [data-bs-theme="dark"] .form-select {
+      background-color: #242e3f;
+      border-color: #3a4a63;
+      color: #e6edf7;
+    }
+    [data-bs-theme="dark"] .form-control:focus,
+    [data-bs-theme="dark"] .form-select:focus {
+      background-color: #242e3f;
+      border-color: #4299e1;
+      color: #e6edf7;
+    }
+    /* 按钮暗色微调 */
+    [data-bs-theme="dark"] .btn-outline-secondary {
+      border-color: #4a5568;
+      color: #cbd5e0;
+    }
+    [data-bs-theme="dark"] .btn-outline-secondary:hover {
+      background-color: #2d3748;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-md mb-4 border" data-bs-theme>
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{% url 'learning_logs:index' %}">
+        {% if LANGUAGE_CODE == "zh-hans" %}学习日志{% else %}Learning Log{% endif %}
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+        data-bs-target="#navbarCollapse" aria-controls="navbarCollapse"
+        aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarCollapse">
+        <ul class="navbar-nav me-auto mb-2 mb-md-0">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'learning_logs:topics' %}">
+              {% if LANGUAGE_CODE == "zh-hans" %}主题{% else %}Topics{% endif %}
+            </a>
+          </li>
+        </ul>
+
+        <ul class="navbar-nav ms-auto mb-2 mb-md-0 align-items-center">
+          <!-- 明暗切换 -->
+          <li class="nav-item me-2">
+            <button id="themeToggle" class="btn btn-secondary btn-sm">
+              <span id="themeBtnText">
+                {% if LANGUAGE_CODE == "zh-hans" %}开启暗色模式{% else %}Enable Dark Mode{% endif %}
+              </span>
+            </button>
+          </li>
+          <!-- 语言下拉 -->
+          <li class="nav-item me-2 dropdown">
+            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+              {% if LANGUAGE_CODE == "zh-hans" %}中文{% else %}English{% endif %}
+            </button>
+            <ul class="dropdown-menu p-2">
+              <li>
+                <form action="{% url 'set_language' %}" method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="next" value="{{ request.path }}">
+                  <input type="hidden" name="language" value="zh-hans">
+                  <button class="dropdown-item" type="submit">简体中文</button>
+                </form>
+              </li>
+              <li>
+                <form action="{% url 'set_language' %}" method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="next" value="{{ request.path }}">
+                  <input type="hidden" name="language" value="en">
+                  <button class="dropdown-item" type="submit">English</button>
+                </form>
+              </li>
+            </ul>
+          </li>
+          <!-- 登录状态按钮 -->
+          {% if user.is_authenticated %}
+            <li class="nav-item me-2">
+              <span class="navbar-text">
+                {% if LANGUAGE_CODE == "zh-hans" %}你好，{% else %}Hello,{% endif %} {{ user.username }}
+              </span>
+            </li>
+            <li class="nav-item">
+              <form action="{% url 'accounts:logout' %}" method="post">
+                {% csrf_token %}
+                <button class="btn btn-danger btn-sm">
+                  {% if LANGUAGE_CODE == "zh-hans" %}退出{% else %}Log out{% endif %}
+                </button>
+              </form>
+            </li>
+          {% else %}
+            <li class="nav-item me-1">
+              <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:register' %}">
+                {% if LANGUAGE_CODE == "zh-hans" %}注册{% else %}Register{% endif %}
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="btn btn-primary btn-sm" href="{% url 'accounts:login' %}">
+                {% if LANGUAGE_CODE == "zh-hans" %}登录{% else %}Log in{% endif %}
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <!-- 页面头部：左侧返回按钮 + 右侧标题，分层清晰 -->
+    <div class="pb-3 mb-5 border-bottom d-flex justify-content-between align-items-center">
+      <div>
+        {% block back_button %}{% endblock back_button %}
+      </div>
+      <div class="text-end">
+        {% block page_header %}{% endblock page_header %}
+      </div>
+    </div>
+
+    <div>
+      {% block content %}{% endblock content %}
+    </div>
+  </main>
+
+  <!-- Toast 弹窗容器 全局右下角 -->
+  <div class="toast-container"></div>
+
+  <script>
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    const html = document.documentElement;
+    const btnText = document.getElementById('themeBtnText');
+    // Favicon 元素
+    const faviconTag = document.getElementById('faviconTag');
+    const faviconShortTag = document.getElementById('faviconShortTag');
+    const lightFav = "{% static 'images/favicon-light.ico' %}";
+    const darkFav = "{% static 'images/favicon-dark.ico' %}";
+
+    // 文字多语言
+    const darkText = {% if LANGUAGE_CODE == "zh-hans" %}"开启亮色模式"{% else %}"Enable Light Mode"{% endif %};
+    const lightText = {% if LANGUAGE_CODE == "zh-hans" %}"开启暗色模式"{% else %}"Enable Dark Mode"{% endif %};
+
+    // 初始化按钮文字 + 图标
+    function setThemeAssets(theme) {
+      if (theme === 'dark') {
+        btnText.textContent = darkText;
+        faviconTag.href = darkFav;
+        faviconShortTag.href = darkFav;
+      } else {
+        btnText.textContent = lightText;
+        faviconTag.href = lightFav;
+        faviconShortTag.href = lightFav;
+      }
+    }
+    setThemeAssets(savedTheme);
+
+    // 切换按钮点击事件
+    const toggleBtn = document.getElementById('themeToggle');
+    toggleBtn.addEventListener('click', () => {
+      const current = html.getAttribute('data-bs-theme');
+      const newTheme = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-bs-theme', newTheme);
+      html.style.colorScheme = newTheme;
+      localStorage.setItem('theme', newTheme);
+      setThemeAssets(newTheme);
+    })
+
+    // 全局弹出 Toast 工具函数
+    function showToast(msg, type="danger"){
+      const container = document.querySelector(".toast-container");
+      const toastEl = document.createElement("div");
+      toastEl.className = `toast align-items-center text-bg-${type} border-0 mb-2`;
+      toastEl.setAttribute("role","alert");
+      toastEl.setAttribute("aria-live","assertive");
+      toastEl.setAttribute("aria-atomic","true");
+      toastEl.innerHTML = `
+        <div class="d-flex">
+          <div class="toast-body">${msg}</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      `;
+      container.appendChild(toastEl);
+      const toast = new bootstrap.Toast(toastEl,{autohide:true,delay:3000});
+      toast.show();
+      // 自动销毁DOM
+      toastEl.addEventListener("hidden.bs.toast",()=>toastEl.remove());
+    }
+  </script>
+</body>
+</html>

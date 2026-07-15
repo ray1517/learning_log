@@ -1,21 +1,35 @@
-{% extends 'learning_logs/base.html' %}
+{% extends "base.html" %}
 
 {% block page_header %}
-  <div class="p-3 mb-4 border rounded-3 bg-body-tertiary">
-    <div class="container-fluid py-4">
-      <h1 class="display-3 text-body">
-        {% if LANGUAGE_CODE == "zh-hans" %}记录你的学习。{% else %}Track your learning.{% endif %}
-      </h1>
-      <p class="lead text-secondary">
-        {% if LANGUAGE_CODE == "zh-hans" %}
-        创建专属学习日志，记录你学习的各类主题。每当你学到新知识，就写一篇总结记录下来。
-        {% else %}
-        Make your own Learning Log, and keep a list of the topics you're learning about. Whenever you learn something new about a topic, make an entry summarizing what you've learned.
-        {% endif %}
-      </p>
-      <a class="btn btn-primary btn-lg mt-4 text-white" href="{% url 'accounts:register' %}">
-        {% if LANGUAGE_CODE == "zh-hans" %}注册 &raquo;{% else %}Register &raquo;{% endif %}
-      </a>
-    </div>
-  </div>
+<h2>
+{% if LANGUAGE_CODE == "zh-hans" %}学习日志{% else %}Learning Log{% endif %}
+</h2>
 {% endblock page_header %}
+
+{% block content %}
+<div class="card py-5">
+    {% if not user.is_authenticated %}
+    <h1 class="mb-3">记录你的学习。</h1>
+    <p class="text-secondary fs-5 mb-4">
+        创建专属学习日志，记录你学习的各类主题。每当你学到新知识，就写一篇总结记录下来。
+    </p>
+    <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg">
+        {% if LANGUAGE_CODE == "zh-hans" %}注册 »{% else %}Register »{% endif %}
+    </a>
+    {% else %}
+    <h1 class="mb-3">记录你的学习。</h1>
+    <p class="text-secondary fs-5 mb-4">
+        {% if LANGUAGE_CODE == "zh-hans" %}随时查看/新建你的学习主题{% else %}View & create your topics anytime{% endif %}
+    </p>
+    <a href="{% url 'learning_logs:topics' %}" class="btn btn-primary btn-lg">
+        {% if LANGUAGE_CODE == "zh-hans" %}查看我的主题{% else %}My Topics{% endif %}
+    </a>
+    {% endif %}
+</div>
+
+{% if request.session.toast_msg %}
+<script>
+showToast("{{ request.session.toast_msg }}", "success");
+</script>
+{% endif %}
+{% endblock content %}

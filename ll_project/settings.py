@@ -23,26 +23,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-=t3v&40nn0@(hdwgmcmui7p(o*ym@!t9os^$=nzu(w)j9)xy_7'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
-
 INSTALLED_APPS = [
-    #我的应用程序
-    'learning_logs',
-    'accounts',
-    #第三方应用程序
-    'django_bootstrap5',
-    #django默认添加的应用程序
+    # 必须放在 admin 前面，加载Jazzmin美化后台
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    #第三方应用程序
+    'django_bootstrap5',
+    #我的应用程序
+    'learning_logs',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -112,6 +112,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 USE_I18N = True
+USE_L10N = True
+TIME_ZONE = "Asia/Shanghai"
 
 LANGUAGES = [
     ("zh-hans", "简体中文"),
@@ -130,3 +132,62 @@ STATICFILES_DIRS = [
 LOGIN_REDIRECT_URL = 'learning_logs:index'
 LOGOUT_REDIRECT_URL = 'learning_logs:index'
 LOGIN_URL = 'accounts:login'
+
+# Jazzmin 后台美化配置
+JAZZMIN_SETTINGS = {
+    "site_title": "学习日志管理后台",
+    "site_header": "学习日志",
+    "site_brand": "学习日志管理系统",
+    "site_logo": "images/favicon-light.ico",
+    "login_logo": "images/favicon-light.ico",
+    "login_logo_dark": "images/favicon-dark.ico",
+    "site_logo_classes": "img-circle",
+    "welcome_sign": "欢迎进入学习日志管理后台",
+    "copyright": "学习日志 © 2026",
+    "search_model": ["auth.User", "learning_logs.Topic", "learning_logs.Entry"],
+    "show_sidebar": True,
+    "navigation_expand": True,
+    "hide_apps": [],
+    "hide_models": [],
+    "order_with_respect_to": ["auth", "learning_logs"],
+    "custom_links": {
+        "learning_logs": [{
+            "name": "回到网站首页",
+            "url": "learning_logs:index",
+            "icon": "fas fa-home",
+        }]
+    },
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "learning_logs.Topic": "fas fa-book",
+        "learning_logs.Entry": "fas fa-pen",
+    },
+    "changeform_format": "horizontal_tabs",
+    "changeform_format_overrides": {"auth.user": "collapsible"},
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "bg-primary",
+    "accent": "primary",
+    "navbar": "navbar-dark",
+    "no_navbar_border": False,
+    "navbar_fixed": True,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-dark-primary",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": True,
+    "compact_sidebar": False,
+    "sidebar_nav_foldable": True,
+    "navbar_mood_mode": False,
+    "sidebar_logo": "bg-dark",
+    "sidebar_nav_icons_only": False,
+}

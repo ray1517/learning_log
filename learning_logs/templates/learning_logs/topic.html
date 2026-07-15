@@ -1,38 +1,50 @@
-{% extends 'learning_logs/base.html' %}
+{% extends "base.html" %}
+
+{% block back_button %}
+<a href="{% url 'learning_logs:topics' %}" class="btn btn-outline-secondary btn-sm">
+{% if LANGUAGE_CODE == "zh-hans" %}返回主题列表{% else %}Back to topics{% endif %}
+</a>
+{% endblock back_button %}
 
 {% block page_header %}
-  <h1>{{ topic.text }}</h1>
+<h2>{{ topic.text }}</h2>
+{% if is_owner %}
+<a href="{% url 'learning_logs:new_entry' topic.id %}" class="btn btn-primary btn-sm ms-3">
+{% if LANGUAGE_CODE == "zh-hans" %}新增笔记{% else %}New Entry{% endif %}
+</a>
+{% endif %}
 {% endblock page_header %}
 
 {% block content %}
-{% if is_owner %}
-  <p>
-    <a href="{% url 'learning_logs:new_entry' topic.id %}" class="btn btn-primary">
-      {% if LANGUAGE_CODE == "zh-hans" %}新增笔记{% else %}Add new entry{% endif %}
-    </a>
-  </p>
-{% endif %}
+<div class="card">
+    {% if not entries %}
+    <div class="alert alert-info text-center py-5">
+        <h4>{% if LANGUAGE_CODE == "zh-hans" %}该主题暂无笔记{% else %}No entries in this topic{% endif %}</h4>
+        {% if is_owner %}
+        <p>{% if LANGUAGE_CODE == "zh-hans" %}点击上方按钮添加第一条笔记{% else %}Add your first entry above{% endif %}</p>
+        {% endif %}
+    </div>
+    {% endif %}
 
-{% for entry in entries %}
-  <div class="card mb-3">
-    <h4 class="card-header">
-      {{ entry.date_added|date:'M d, Y H:i' }}
-      {% if is_owner %}
-        <small>
-          <a href="{% url 'learning_logs:edit_entry' entry.id %}" class="btn btn-sm btn-outline-secondary py-0 px-1">
-            {% if LANGUAGE_CODE == "zh-hans" %}编辑{% else %}edit entry{% endif %}
-          </a>
-          <a href="{% url 'learning_logs:delete_entry' entry.id %}" class="btn btn-sm btn-outline-danger ms-1 py-0 px-1">
-            {% if LANGUAGE_CODE == "zh-hans" %}删除{% else %}delete entry{% endif %}
-          </a>
-        </small>
-      {% endif %}
-    </h4>
-    <div class="card-body">{{ entry.text|linebreaks }}</div>
-  </div>
-{% empty %}
-  <p>
-    {% if LANGUAGE_CODE == "zh-hans" %}该主题下暂无笔记。{% else %}There are no entries for this topic yet.{% endif %}
-  </p>
-{% endfor %}
+    {% for entry in entries %}
+    <div class="border-bottom py-3">
+        <small class="text-muted">{{ entry.date_added }}</small>
+        <p class="mt-2">{{ entry.text|linebreaks }}</p>
+        {% if is_owner %}
+        <div class="d-flex gap-2">
+            <a href="{% url 'learning_logs:edit_entry' entry.id %}" class="btn btn-sm btn-outline-secondary">
+                {% if LANGUAGE_CODE == "zh-hans" %}编辑{% else %}Edit{% endif %}
+            </a>
+            <a href="{% url 'learning_logs:delete_entry' entry.id %}" class="btn btn-sm btn-danger">
+                {% if LANGUAGE_CODE == "zh-hans" %}删除{% else %}Delete{% endif %}
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+{% if request.session.toast_msg %}
+<script>showToast("{{ request.session.toast_msg }}", "success");</script>
+{% endif %}
 {% endblock content %}

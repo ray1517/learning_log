@@ -1,56 +1,40 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.http import Http404
+from django.core.paginator import Paginator
 
 from .models import Topic, Entry
 from .forms import TopicForm, EntryForm
 
 
 def index(request):
-    """The home page for Learning Log."""
-    return render(request, 'learning_logs/index.html')
+    context = {}
+    return render(request, 'learning_logs/index.html', context)
 
 
 def topics(request):
-    """Show all of the current user's topics, and public topics that belong
-    to other users.
-    """
-    # Get all appropriate topics.
-    # If a user is logged in, we get all of their topics, and all public topics
-    #   from other users.
-    # If a user is not logged in, we get all public topics.
     if request.user.is_authenticated:
-        topics = Topic.objects.filter(owner=request.user).order_by('date_added')
-        # Get all public topics not owned by the current user.
-        # Note: Wrapping the query in parentheses lets you break the long query
-        #   up across multiple lines.
-        public_topics = (Topic.objects
-            .filter(public=True)
-            .exclude(owner=request.user)
-            .order_by('date_added'))
+        own_topics = Topic.objects.filter(owner=request.user)
+        public_topics = Topic.objects.filter(public=True).exclude(owner=request.user)
+        topic_list = own_topics | public_topics
     else:
-        # User is not authenticated; return all public topics.
-        topics = None
-        public_topics = Topic.objects.filter(public=True).order_by('date_added')
+        topic_list = Topic.objects.filter(public=True)
+    topic_list = topic_list.order_by('-date_added')
 
-    context = {'topics': topics, 'public_topics': public_topics}
+    # 分页
+    paginator = Paginator(topic_list, 15)
+    page_num = request.GET.get('page', 1)
+    topics = paginator.get_page(page_num)
+
+    context = {'topics': topics}
     return render(request, 'learning_logs/topics.html', context)
 
 
 def topic(request, topic_id):
-    """Show a single topic and all its entries."""
-    topic = Topic.objects.get(id=topic_id)
+    topic = get_object_or_404(Topic, id=topic_id)
+    is_owner = request.user == topic.owner
 
-    # We only want to show new_entry and edit_entry links if the current
-    #   user owns this topic.
-    is_owner = False
-    if request.user == topic.owner:
-        is_owner = True
-
-    # If the topic belongs to someone else, and it is not public,
-    #   show an error page.
     if (topic.owner != request.user) and (not topic.public):
-        raise Http404
+        return render(request, "404.html", status=404)
 
     entries = topic.entry_set.order_by('-date_added')
     context = {'topic': topic, 'entries': entries, 'is_owner': is_owner}
@@ -59,78 +43,94 @@ def topic(request, topic_id):
 
 @login_required
 def new_topic(request):
-    """Add a new topic."""
     if request.method != 'POST':
-        # No data submitted; create a blank form.
         form = TopicForm()
     else:
-        # POST data submitted; process data.
         form = TopicForm(data=request.POST)
         if form.is_valid():
             new_topic = form.save(commit=False)
             new_topic.owner = request.user
             new_topic.save()
+            if request.LANGUAGE_CODE == "zh-hans":
+                request.session["toast_msg"] = "主题创建成功"
+            else:
+                request.session["toast_msg"] = "Topic created successfully"
             return redirect('learning_logs:topics')
+        else:
+            if request.LANGUAGE_CODE == "zh-hans":
+                request.session["toast_msg"] = "主题名称不能为空"
+            else:
+                request.session["toast_msg"] = "Topic name cannot be empty"
 
-    # Display a blank or invalid form.
     context = {'form': form}
     return render(request, 'learning_logs/new_topic.html', context)
 
 
 @login_required
 def new_entry(request, topic_id):
-    """Add a new entry for a particular topic."""
-    topic = Topic.objects.get(id=topic_id)
+    topic = get_object_or_404(Topic, id=topic_id, owner=request.user)
 
     if request.method != 'POST':
-        # No data submitted; create a blank form.
         form = EntryForm()
     else:
-        # POST data submitted; process data.
         form = EntryForm(data=request.POST)
         if form.is_valid():
             new_entry = form.save(commit=False)
             new_entry.topic = topic
             new_entry.save()
+            if request.LANGUAGE_CODE == "zh-hans":
+                request.session["toast_msg"] = "笔记新增成功"
+            else:
+                request.session["toast_msg"] = "Entry added successfully"
             return redirect('learning_logs:topic', topic_id=topic_id)
+        else:
+            if request.LANGUAGE_CODE == "zh-hans":
+                request.session["toast_msg"] = "笔记内容不能为空"
+            else:
+                request.session["toast_msg"] = "Entry content cannot be empty"
 
-    # Display a blank or invalid form.
     context = {'topic': topic, 'form': form}
     return render(request, 'learning_logs/new_entry.html', context)
 
 
 @login_required
 def edit_entry(request, entry_id):
-    """Edit an existing entry."""
-    entry = Entry.objects.get(id=entry_id)
+    entry = get_object_or_404(Entry, id=entry_id)
     topic = entry.topic
     if topic.owner != request.user:
-        raise Http404
+        return render(request, "404.html", status=404)
 
     if request.method != 'POST':
-        # Initial request; pre-fill form with the current entry.
         form = EntryForm(instance=entry)
     else:
-        # POST data submitted; process data.
         form = EntryForm(instance=entry, data=request.POST)
         if form.is_valid():
             form.save()
+            if request.LANGUAGE_CODE == "zh-hans":
+                request.session["toast_msg"] = "笔记修改成功"
+            else:
+                request.session["toast_msg"] = "Entry saved successfully"
             return redirect('learning_logs:topic', topic_id=topic.id)
+        else:
+            if request.LANGUAGE_CODE == "zh-hans":
+                request.session["toast_msg"] = "笔记内容不能为空"
+            else:
+                request.session["toast_msg"] = "Entry content cannot be empty"
 
     context = {'entry': entry, 'topic': topic, 'form': form}
     return render(request, 'learning_logs/edit_entry.html', context)
 
 
-# 新增删除视图
 @login_required
 def delete_topic(request, topic_id):
-    """Delete an existing topic."""
-    topic = Topic.objects.get(id=topic_id)
-    if topic.owner != request.user:
-        raise Http404
+    topic = get_object_or_404(Topic, id=topic_id, owner=request.user)
 
     if request.method == "POST":
         topic.delete()
+        if request.LANGUAGE_CODE == "zh-hans":
+            request.session["toast_msg"] = "主题已删除"
+        else:
+            request.session["toast_msg"] = "Topic deleted"
         return redirect("learning_logs:topics")
 
     context = {"topic": topic}
@@ -139,14 +139,17 @@ def delete_topic(request, topic_id):
 
 @login_required
 def delete_entry(request, entry_id):
-    """Delete an existing entry."""
-    entry = Entry.objects.get(id=entry_id)
+    entry = get_object_or_404(Entry, id=entry_id)
     topic = entry.topic
     if topic.owner != request.user:
-        raise Http404
+        return render(request, "404.html", status=404)
 
     if request.method == "POST":
         entry.delete()
+        if request.LANGUAGE_CODE == "zh-hans":
+            request.session["toast_msg"] = "笔记已删除"
+        else:
+            request.session["toast_msg"] = "Entry deleted"
         return redirect("learning_logs:topic", topic_id=topic.id)
 
     context = {"entry": entry, "topic": topic}

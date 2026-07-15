@@ -1,5 +1,11 @@
-{% extends "learning_logs/base.html" %}
+{% extends "base.html" %}
 {% load django_bootstrap5 %}
+
+{% block back_button %}
+<a href="{% url 'learning_logs:topic' topic.id %}" class="btn btn-outline-secondary btn-sm">
+    {% if LANGUAGE_CODE == "zh-hans" %}返回主题{% else %}Back to topic{% endif %}
+</a>
+{% endblock back_button %}
 
 {% block page_header %}
   <h2 class="text-danger">
@@ -35,4 +41,10 @@
     {% endif %}
   </form>
 </div>
+
+{% if request.session.toast_msg %}
+<script>
+showToast("{{ request.session.toast_msg }}", "danger");
+</script>
+{% endif %}
 {% endblock content %}

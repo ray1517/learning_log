@@ -1,5 +1,11 @@
-{% extends "learning_logs/base.html" %}
+{% extends "base.html" %}
 {% load django_bootstrap5 %}
+
+{% block back_button %}
+  <a href="{% url 'learning_logs:index' %}" class="btn btn-outline-secondary btn-sm">
+    {% if LANGUAGE_CODE == "zh-hans" %}返回首页{% else %}Back Home{% endif %}
+  </a>
+{% endblock back_button %}
 
 {% block page_header %}
   <h2>
@@ -8,13 +14,24 @@
 {% endblock page_header %}
 
 {% block content %}
+<div class="card">
   <form action="{% url 'accounts:register' %}" method='post'>
     {% csrf_token %}
     {% bootstrap_form form %}
+    <div class="mt-4">
     {% if LANGUAGE_CODE == "zh-hans" %}
       {% bootstrap_button button_type="submit" content="注册" %}
     {% else %}
       {% bootstrap_button button_type="submit" content="Register" %}
     {% endif %}
+    </div>
   </form>
+</div>
 {% endblock content %}
+
+{% if request.session.toast_msg %}
+<script>
+  // 弹窗提示错误信息
+  showToast("{{ request.session.toast_msg }}", "danger");
+</script>
+{% endif %}
